@@ -1,4 +1,26 @@
--- Quickt Tut: Switches and other Things can be changed here, dont share the Script!!!!
+local whitelistedUsers = {
+    "DemonHunter28625", -- Whitelist 1
+    "ThatKingJohnathon", -- Whitelist 2
+    "Waffle195213", -- Whitelist 3
+    "Firefitdue100alt", -- Whitelist 4
+}
+
+local function isWhitelisted(username)
+    for _, whitelisted in ipairs(whitelistedUsers) do
+        if username == whitelisted then
+            return true
+        end
+    end
+    return false
+end
+
+local player = game.Players.LocalPlayer
+local username = player.Name
+
+if not isWhitelisted(username) then
+    game.Players.LocalPlayer:Kick("Not Whitelisted.")
+    return
+end
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/lkjhg969/ffdsf/refs/heads/main/hgfhj", true))()
 
@@ -10,6 +32,7 @@ local window = library:AddWindow("CRUSHER KILLING ", {
 
 local Player = game:GetService("Players").LocalPlayer
 
+local MainTab = window:AddTab("Main")
 local KillingTab = window:AddTab("Killing")
 KillingTab:Show()
 
@@ -359,6 +382,10 @@ local whitelistDropdown = KillingTab:AddDropdown("Add to Whitelist", function(se
     end
 end)
 
+KillingTab:AddButton("Clear Whitelist", function()
+    _G.whitelistedPlayers = {}
+end)
+
 local switch = KillingTab:AddSwitch("Kill Everyone", function(bool)
     _G.killAll = bool
     if bool then
@@ -380,7 +407,7 @@ local switch = KillingTab:AddSwitch("Kill Everyone", function(bool)
         end
     end
 end)
-switch:Set(true)
+switch:Set(false)
 
 local switch = KillingTab:AddSwitch("Whitelist Friends", function(bool)
     _G.whitelistFriends = bool
@@ -420,9 +447,7 @@ local switch = KillingTab:AddSwitch("Whitelist Friends", function(bool)
     end
 end)
 
-switch:Set(true)
-
-KillingTab:AddLabel("")
+switch:Set(false)
 
 local blacklistDropdown = KillingTab:AddDropdown("Add to Killlist", function(selectedText)
     local playerName = selectedText:match("| (.+)$")
@@ -449,6 +474,10 @@ game:GetService("Players").PlayerAdded:Connect(function(player)
         whitelistDropdown:Add(displayText)
         blacklistDropdown:Add(displayText)
     end
+end)
+
+KillingTab:AddButton("Clear Killlist", function()
+    _G.blacklistedPlayers = {}
 end)
 
 
@@ -638,46 +667,6 @@ end)
 deathRingSwitch:Set(false)
 visualRingSwitch:Set(false)
 
-local whitelistLabel = KillingTab:AddLabel("Whitelist: None")
-whitelistLabel.TextColor3 = Color3.fromRGB(26, 122, 212)
-whitelistLabel.TextSize = 17
-
-KillingTab:AddButton("Clear Whitelist", function()
-    _G.whitelistedPlayers = {}
-end)
-
-local blacklistLabel = KillingTab:AddLabel("Killlist: None")
-blacklistLabel.TextColor3 = Color3.fromRGB(191, 58, 25)
-blacklistLabel.TextSize = 17
-
-KillingTab:AddButton("Clear Blacklist", function()
-    _G.blacklistedPlayers = {}
-end)
-
-local function updateWhitelistLabel()
-    if #_G.whitelistedPlayers == 0 then
-        whitelistLabel.Text = "Whitelist: None"
-    else
-        whitelistLabel.Text = "Whitelist: " .. table.concat(_G.whitelistedPlayers, ", ")
-    end
-end
-
-local function updateBlacklistLabel()
-    if #_G.blacklistedPlayers == 0 then
-        blacklistLabel.Text = "Killlist: None"
-    else
-        blacklistLabel.Text = "Killlist: " .. table.concat(_G.blacklistedPlayers, ", ")
-    end
-end
-
-task.spawn(function()
-    while true do
-        updateWhitelistLabel()
-        updateBlacklistLabel()
-        task.wait(0.2)
-    end
-end)
-
 local antiKnockbackSwitch = KillingTab:AddSwitch("Anti Fling", function(bool)
     if bool then
         local playerName = game.Players.LocalPlayer.Name
@@ -706,7 +695,7 @@ local antiKnockbackSwitch = KillingTab:AddSwitch("Anti Fling", function(bool)
         end
     end
 end)
-antiKnockbackSwitch:Set(true)
+antiKnockbackSwitch:Set(false)
 
 local showpetsswitch = KillingTab:AddSwitch("Show Pets", function(bool)
     local player = game:GetService("Players").LocalPlayer
@@ -715,3 +704,268 @@ local showpetsswitch = KillingTab:AddSwitch("Show Pets", function(bool)
     end
 end)
 showpetsswitch:Set(false)
+
+local switch = MainTab:AddSwitch("Lock Position", function(Value)
+    if Value then
+        -- Lock Position
+        local currentPos = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+        getgenv().posLock = game:GetService("RunService").Heartbeat:Connect(function()
+            if game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = currentPos
+            end
+        end)
+    else
+        -- Unlock Position
+        if getgenv().posLock then
+            getgenv().posLock:Disconnect()
+            getgenv().posLock = nil
+        end
+    end
+end)
+
+local timeDropdown = MainTab:AddDropdown("Time", function(selection)
+    local lighting = game:GetService("Lighting")
+ 
+    if selection == "Night" then
+        lighting.ClockTime = 0
+    elseif selection == "Day" then
+        lighting.ClockTime = 12
+    elseif selection == "Midnight" then
+        lighting.ClockTime = 6
+    end
+end)
+
+timeDropdown:Add("Morning")
+timeDropdown:Add("Day")
+timeDropdown:Add("Night")
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local titleLabel = KillingTab:AddLabel("Add the display name or initials of the clan")
+titleLabel.TextSize = 14
+titleLabel.Font = Enum.Font.Merriweather 
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local fileName = "InfiniteBlacklist_"..LocalPlayer.Name..".txt"
+local blacklistWords = {}
+local active = {}
+local attackDelay = 0.06
+local characterLoaded = false
+local autoPunchActive = false
+
+local function trim(s) 
+	return s:match("^%s*(.-)%s*$") 
+end
+
+local function parseList(text)
+	blacklistWords = {}
+	if not text or text == "" then return end
+	for w in string.gmatch(text, "[^,]+") do
+		local t = trim(w):lower()
+		if t ~= "" then table.insert(blacklistWords, t) end
+	end
+end
+
+if isfile(fileName) then
+	parseList(readfile(fileName))
+else
+	writefile(fileName, "")
+end
+
+local function saveList()
+	writefile(fileName, table.concat(blacklistWords, ","))
+end
+
+local function nameMatchesAny(player)
+	if not player then return false end
+	local dn = (player.DisplayName or ""):lower()
+	for _, w in ipairs(blacklistWords) do
+		if w ~= "" and string.find(dn, w, 1, true) then
+			return true
+		end
+	end
+	return false
+end
+
+local function refreshActive()
+	for k in pairs(active) do active[k] = nil end
+
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer and nameMatchesAny(plr) then
+			active[plr] = true
+		end
+	end
+end
+
+function isAnyActive()
+	for _ in pairs(active) do
+		return true
+	end
+	return false
+end
+
+local function getHands(char)
+	repeat task.wait() until char and char:FindFirstChild("RightHand")
+	local right = char:FindFirstChild("RightHand") or char:FindFirstChild("Right Arm")
+	local left = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
+	return right, left
+end
+
+local function ensurePunchEquipped()
+	if not isAnyActive() then return nil end  -- 🔥 NO EQUIPAR si no hay targets
+
+	local char = LocalPlayer.Character
+	if not char then return nil end
+
+	local punch = char:FindFirstChild("Punch") or LocalPlayer.Backpack:FindFirstChild("Punch")
+
+	if punch and punch.Parent ~= char then
+		punch.Parent = char
+	end
+
+	if not punch then
+		task.defer(function()
+			for i = 1, 40 do
+				if not isAnyActive() then return end -- 🔥 Detener si ya no hay targets
+				local p = LocalPlayer.Backpack:FindFirstChild("Punch")
+				if p then
+					p.Parent = LocalPlayer.Character
+					break
+				end
+				task.wait(0.1)
+			end
+		end)
+	end
+
+	return char:FindFirstChild("Punch")
+end
+
+local function waitForCharacter()
+	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	characterLoaded = true
+
+	task.spawn(function()
+		repeat task.wait() until LocalPlayer:FindFirstChild("Backpack")
+
+		if isAnyActive() then  -- 🔥 SOLO EQUIPAR si hay alguien de la blacklist
+			for i = 1, 60 do
+				local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+				if punch then
+					punch.Parent = char
+					break
+				end
+				task.wait(0.1)
+			end
+		end
+	end)
+
+	return char
+end
+
+blacklistLabel = KillingTab:AddLabel("")
+blacklistLabel.Text = (#blacklistWords == 0 and "Blacklist: (empty)" or "Blacklist: "..table.concat(blacklistWords, ","))
+
+local blacklistBox = KillingTab:AddTextBox("Add to Blacklist", function(txt)
+	parseList((table.concat(blacklistWords, ",")..","..txt))
+	saveList()
+	blacklistLabel.Text = (#blacklistWords == 0 and "Blacklist: (empty)" or "Blacklist: "..table.concat(blacklistWords, ","))
+
+	refreshActive()
+	if not isAnyActive() then autoPunchActive = false end
+end, {["placeholder"] = "Ej: MVX, Sigma, Juan"})
+
+local removeBox = KillingTab:AddTextBox("Remove from Blacklist", function(txt)
+	local toRemove = {}
+	for w in string.gmatch(txt, "[^,]+") do
+		local t = trim(w):lower()
+		if t ~= "" then table.insert(toRemove, t) end
+	end
+
+	for _, word in ipairs(toRemove) do
+		for i = #blacklistWords, 1, -1 do
+			if blacklistWords[i] == word then
+				table.remove(blacklistWords, i)
+			end
+		end
+	end
+
+	saveList()
+	blacklistLabel.Text = (#blacklistWords == 0 and "Blacklist: (empty)" or "Blacklist: "..table.concat(blacklistWords, ","))
+
+	refreshActive()
+
+	if not isAnyActive() then autoPunchActive = false end
+end)
+
+RunService.Heartbeat:Connect(function()
+	refreshActive()
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(attackDelay)
+
+		if not isAnyActive() then
+			continue
+		end
+
+		if not LocalPlayer.Character then continue end
+		if not characterLoaded then continue end
+
+		local punch = ensurePunchEquipped()
+		if not punch then continue end
+
+		local char = LocalPlayer.Character
+		local rightHand, leftHand = getHands(char)
+
+		for plr in pairs(active) do
+			if plr and plr.Character then
+				local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+				local hum = plr.Character:FindFirstChild("Humanoid")
+
+				if hrp and hum and hum.Health > 0 then
+					pcall(function()
+						LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+						LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+					end)
+
+					pcall(function()
+						firetouchinterest(rightHand, hrp, 1)
+						firetouchinterest(leftHand, hrp, 1)
+						firetouchinterest(rightHand, hrp, 0)
+						firetouchinterest(leftHand, hrp, 0)
+					end)
+				end
+			end
+		end
+	end
+end)
+
+Players.PlayerAdded:Connect(function(plr)
+	plr:GetPropertyChangedSignal("DisplayName"):Connect(function()
+		refreshActive()
+	end)
+end)
+
+LocalPlayer.CharacterAdded:Connect(function()
+	characterLoaded = false
+	task.wait(0.2)
+
+	waitForCharacter()
+	refreshActive()
+
+	if isAnyActive() then
+		task.defer(function()
+			for i = 1, 50 do
+				if not isAnyActive() then break end
+				ensurePunchEquipped()
+				task.wait(0.15)
+			end
+		end)
+	end
+end)
+
+waitForCharacter()
+refreshActive()
