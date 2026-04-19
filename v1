@@ -11,6 +11,7 @@ local whitelistedUsers = {
     "tsw7th", -- Whitelist 10
     "7737854967", -- Whitelist 11
     "CANNHAVEMONEY", -- Whitelist 12
+    "https://www.roblox.com/users/7737854967/profile", -- Whitelist 13
 }
 
 local function isWhitelisted(username)
