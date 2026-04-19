@@ -10,6 +10,7 @@ local whitelistedUsers = {
     "mxml72", -- Whitelist 9
     "tsw7th", -- Whitelist 10
     "7737854967", -- Whitelist 11
+    "CANNHAVEMONEY", -- Whitelist 12
 }
 
 local function isWhitelisted(username)
