@@ -3,6 +3,12 @@ local whitelistedUsers = {
     "ThatKingJohnathon", -- Whitelist 2
     "Waffle195213", -- Whitelist 3
     "Firefitdue100alt", -- Whitelist 4
+    "mxml74", -- Whitelist 5
+    "mxml72", -- Whitelist 6
+    "vloraharam", -- Whitelist 7
+    "RealAxolotlGaming", -- Whitelist 8
+    "Sinssalty", -- Whitelist 9
+    "Theyluvfab1", -- Whitist 10
 }
 
 local function isWhitelisted(username)
@@ -35,7 +41,6 @@ local Player = game:GetService("Players").LocalPlayer
 local MainTab = window:AddTab("          Main          ")
 local KillingTab = window:AddTab("          Killing          ")
 local GodmodeTab = window:AddTab("     GodMode     ")
-local SpecsTab = window:AddTab("     Spec     ")
 MainTab:Show()
 
 local function checkCharacter()
