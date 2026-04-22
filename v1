@@ -103,30 +103,6 @@ local function ensureEggEquipped()
     end
 end
 
-local BlockEggEating = false
-
-local BlockEggSwitch = KillingTab:AddSwitch("Block Eating Eggs", function(bool)
-    BlockEggEating = bool
-end)
-BlockEggSwitch:Set(false)
-
-local mt = getrawmetatable(game)
-local oldNamecall = mt.__namecall
-setreadonly(mt, false)
-
-mt.__namecall = newcclosure(function(self, ...)
-    local method = getnamecallmethod()
-    local args = { ... }
-
-    if method == "FireServer" and args[1] == "proteinEgg" and BlockEggEating then
-        return
-    end
-
-    return oldNamecall(self, ...)
-end)
-
-setreadonly(mt, true)
-
 local comboSwitch = KillingTab:AddSwitch("Kill while dead (needs Protein Egg)", function(bool)
     comboActive = bool
     
@@ -136,12 +112,12 @@ local comboSwitch = KillingTab:AddSwitch("Kill while dead (needs Protein Egg)", 
         eggLoop = task.spawn(function()
             while comboActive do
                 ensureEggEquipped()
-                task.wait(0.1)
+                task.wait(0.2)
             end
         end)
         
         characterAddedConn = player.CharacterAdded:Connect(function(newChar)
-            task.wait(0.25)
+            task.wait(0.5)
             ensureEggEquipped()
         end)
         
@@ -173,11 +149,6 @@ end)
 
 KillingTab:AddButton("Size nan", function()
     local args = {"changeSize", 0/0}
-    game:GetService("ReplicatedStorage"):WaitForChild("rEvents"):WaitForChild("changeSpeedSizeRemote"):InvokeServer(unpack(args))
-end)
-
-KillingTab:AddButton("Size 2", function()
-    local args = {"changeSize", 2/100}
     game:GetService("ReplicatedStorage"):WaitForChild("rEvents"):WaitForChild("changeSpeedSizeRemote"):InvokeServer(unpack(args))
 end)
 
@@ -707,13 +678,13 @@ GodmodeTab:AddButton("Start Pack Spam", function()
 
             local mighty = getPets(unique, "Mighty Monster")
 
-            for i = 1, math.min(5, #mighty) do
+            for i = 1, math.min(7, #mighty) do
                 if not running then return end
                 remote:FireServer("equipPet", mighty[i])
                 task.wait(0.025)
             end
 
-            task.wait(0.1)
+            task.wait(0.01)
 
             -- ===== Wild Wizard =====
             unequipAll(remote, petsFolder)
@@ -721,7 +692,7 @@ GodmodeTab:AddButton("Start Pack Spam", function()
 
             local wizard = getPets(unique, "Wild Wizard")
 
-            for i = 1, math.min(7, #wizard) do
+            for i = 1, math.min(0, #wizard) do
                 if not running then return end
                 remote:FireServer("equipPet", wizard[i])
                 task.wait(0.025)
